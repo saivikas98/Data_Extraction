@@ -2,7 +2,14 @@ import io
 import re
 from datetime import datetime
 
-import fitz
+try:
+    import pymupdf as fitz  # Current PyMuPDF import name
+except ImportError:
+    try:
+        import fitz  # Backward-compatible import
+    except ImportError:
+        fitz = None
+
 import pandas as pd
 import streamlit as st
 
@@ -46,6 +53,11 @@ def duration_text(start, end):
 @st.cache_data(show_spinner=False)
 def extract_pages(pdf_bytes):
     """Scan the complete PDF and return text for every page."""
+    if fitz is None:
+        raise ModuleNotFoundError(
+            "PyMuPDF is not installed. Add pymupdf>=1.24 to requirements.txt "
+            "in the repository root, commit it, and reboot the Streamlit app."
+        )
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     pages = []
     for i, page in enumerate(doc):
